@@ -4,7 +4,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const app = express();
 const port = 3001;
-
+require("dotenv").config();
 app.use(bodyParser.json());
 app.use(
   cors({
@@ -13,6 +13,7 @@ app.use(
   })
 );
 const server = app.listen(port, () => {
+  console.log("env", process.env.PORT);
   console.log(`Server listening on port ${port}`);
 });
 
