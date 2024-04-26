@@ -1,47 +1,23 @@
-const { Server } = require("socket.io");
-const express = require("express");
-const cors = require("cors");
-const bodyParser = require("body-parser");
-const app = express();
-const port = 3001;
-require("dotenv").config();
-app.use(bodyParser.json());
-app.use(
-  cors({
-    origin: "*",
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  })
+const { app, server } = require("./socket/socket");
+const { routes } = require("./routes/Routes");
+const { Connection } = require("./database/db");
+Connection(
+  process.env.DB_USERNAME,
+  process.env.DB_PASSWORD,
+  process.env.DB_URL,
+  process.env.DB_NAME
 );
-const server = app.listen(port, () => {
-  console.log("env", process.env.PORT);
+const port = process.env.PORT || 3001;
+
+server.listen(port, () => {
+  console.log(
+    "=========> envs",
+    process.env.DB_USERNAME,
+    process.env.DB_PASSWORD,
+    process.env.DB_URL,
+    process.env.DB_NAME
+  );
   console.log(`Server listening on port ${port}`);
 });
 
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  },
-});
-let onlineUsers = [];
-io.on("connection", (socket) => {
-  // console.clear();
-  if (!onlineUsers.find((user) => user.email === socket.handshake.query.email))
-    onlineUsers.push({
-      email: socket.handshake.query.email,
-    });
-  console.log("Online Users", onlineUsers);
-  socket.on("disconnect", () => {
-    onlineUsers = onlineUsers.filter(
-      (user) => user.email !== socket.handshake.query.email
-    );
-    console.log("Online Users", onlineUsers);
-  });
-});
-app.post("/", (req, res) => {
-  const { message, email } = req.body;
-  console.log(message, onlineUsers);
-  for (const user of onlineUsers.filter((user) => user.email !== email)) {
-    io.sockets.emit(user.email, message);
-  }
-});
+app.use("/", routes);
