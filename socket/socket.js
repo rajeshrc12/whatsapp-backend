@@ -3,6 +3,7 @@ const express = require("express");
 const http = require("http");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const { user: User } = require("../models/User");
 require("dotenv").config();
 
 let onlineUsers = [];
@@ -22,7 +23,9 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
   },
 });
-
+const setLastSeen = async ({ email, lastSeen }) => {
+  await User.updateOne({ email }, { $set: { lastSeen } });
+};
 io.on("connection", (socket) => {
   // console.clear();
   if (!onlineUsers.find((user) => user.email === socket.handshake.query.email))
@@ -30,11 +33,15 @@ io.on("connection", (socket) => {
       email: socket.handshake.query.email,
     });
   console.log("Online Users", onlineUsers);
+  socket.broadcast.emit("onlineUsers", onlineUsers);
   socket.on("disconnect", () => {
     onlineUsers = onlineUsers.filter(
       (user) => user.email !== socket.handshake.query.email
     );
     console.log("Online Users", onlineUsers);
+    setLastSeen({ email: socket.handshake.query.email, lastSeen: new Date() });
+    console.log({ email: socket.handshake.query.email, lastSeen: new Date() });
+    socket.broadcast.emit("onlineUsers", onlineUsers);
   });
 });
 

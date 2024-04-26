@@ -21,7 +21,7 @@ routes.post("/pinguser", pingUser);
 // Chat routes
 routes.post("/chat", sendChats);
 routes.get("/chat/:from/:to", getChats);
-routes.get("/contact/:name", getContacts);
+routes.get("/contact/:email", getContacts);
 
 module.exports = {
   routes,

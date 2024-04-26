@@ -1,6 +1,7 @@
 const { Chat } = require("../models/Chat");
 const { io } = require("../socket/socket");
 const mongoose = require("mongoose");
+const { user: User } = require("../models/User");
 const sendChats = async (req, res) => {
   try {
     let { chat, to, from } = req.body;
@@ -58,21 +59,21 @@ const getChats = async (req, res) => {
 
 const getContacts = async (req, res) => {
   try {
-    const { name } = req.params;
+    const { email } = req.params;
     let data = [];
-    console.log(name);
-    if (name) {
+    console.log(email);
+    if (email) {
       const result = await Chat.aggregate([
         // Match documents where the given string is present in the users array
-        { $match: { users: name } },
+        { $match: { users: email } },
         // Project to remove the given string from users array and rename it to 'name'
         {
           $project: {
-            name: {
+            email: {
               $filter: {
                 input: "$users",
                 as: "user",
-                cond: { $ne: ["$$user", name] },
+                cond: { $ne: ["$$user", email] },
               },
             },
             chats: 1,
@@ -81,7 +82,7 @@ const getContacts = async (req, res) => {
         // Filter chats where seen is false and chat.to is "rajesh"
         {
           $project: {
-            name: 1,
+            email: 1,
             unseenChats: {
               $filter: {
                 input: "$chats",
@@ -89,7 +90,7 @@ const getContacts = async (req, res) => {
                 cond: {
                   $and: [
                     { $eq: ["$$chat.seen", false] },
-                    { $eq: ["$$chat.to", name] },
+                    { $eq: ["$$chat.to", email] },
                   ],
                 },
               },
@@ -98,15 +99,15 @@ const getContacts = async (req, res) => {
         },
         // Project to count the number of unseen chats
         { $addFields: { unseenCount: { $size: "$unseenChats" } } },
-        // Project to keep only 'name' and 'unseenCount' fields
-        { $project: { _id: 0, name: 1, unseenCount: 1 } },
+        // Project to keep only 'email' and 'unseenCount' fields
+        { $project: { _id: 0, email: 1, unseenCount: 1 } },
       ]);
       data = [];
       for (const user of result) {
         const res = await Chat.aggregate([
           {
             $match: {
-              users: { $all: [user.name.join(""), name] },
+              users: { $all: [user.email.join(""), email] },
             },
           },
           {
@@ -118,9 +119,12 @@ const getContacts = async (req, res) => {
             $replaceRoot: { newRoot: "$lastChat" },
           },
         ]);
+        const nameRes = await User.findOne({ email: user.email.join("") });
         data.push({
           ...user,
-          name: user.name.join(""),
+          name: nameRes.name,
+          profileImageUrl: nameRes.profileImageUrl,
+          email: user.email.join(""),
           lastChat: res[0],
         });
       }
