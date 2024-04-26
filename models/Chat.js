@@ -2,15 +2,14 @@ const mongoose = require("mongoose");
 const chatSchema = new mongoose.Schema({
   _id: {
     type: mongoose.Schema.Types.ObjectId,
-    index: true,
     required: true,
-    auto: true,
   },
   from: { type: String, required: true },
   to: { type: String, required: true },
   type: { type: String, required: true },
   message: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
+  createdAt: { type: Date, required: true },
+  seen: { type: Boolean, required: true },
 });
 
 const userChatSchema = new mongoose.Schema({

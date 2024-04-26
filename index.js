@@ -10,13 +10,6 @@ Connection(
 const port = process.env.PORT || 3001;
 
 server.listen(port, () => {
-  console.log(
-    "=========> envs",
-    process.env.DB_USERNAME,
-    process.env.DB_PASSWORD,
-    process.env.DB_URL,
-    process.env.DB_NAME
-  );
   console.log(`Server listening on port ${port}`);
 });
 
