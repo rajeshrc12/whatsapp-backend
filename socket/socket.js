@@ -31,6 +31,7 @@ io.on("connection", (socket) => {
   if (!onlineUsers.find((user) => user.email === socket.handshake.query.email))
     onlineUsers.push({
       email: socket.handshake.query.email,
+      openProfile: null,
     });
   console.log("Online Users", onlineUsers);
   socket.broadcast.emit("onlineUsers", onlineUsers);
@@ -40,7 +41,6 @@ io.on("connection", (socket) => {
     );
     console.log("Online Users", onlineUsers);
     setLastSeen({ email: socket.handshake.query.email, lastSeen: new Date() });
-    console.log({ email: socket.handshake.query.email, lastSeen: new Date() });
     socket.broadcast.emit("onlineUsers", onlineUsers);
   });
 });

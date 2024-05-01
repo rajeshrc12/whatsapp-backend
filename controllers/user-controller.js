@@ -32,9 +32,17 @@ const getAllUsers = async (req, res) => {
 const getUser = async (req, res) => {
   try {
     let result = await User.findOne({ email: req.params.email });
+    result._doc.openProfile = null;
     const onlineUsers = getOnlineUsers();
-    if (onlineUsers.find((user) => user.email === req.params.email))
-      result = { ...result._doc, lastSeen: "online" };
+    const isUserOnline = onlineUsers.find(
+      (user) => user.email === req.params.email
+    );
+    if (isUserOnline)
+      result = {
+        ...result._doc,
+        lastSeen: "online",
+        openProfile: isUserOnline.openProfile,
+      };
     res.status(200).json(result);
   } catch (error) {
     console.log(error);
@@ -51,9 +59,26 @@ const pingUser = (req, res) => {
     res.status(500).json(error);
   }
 };
+
+const setOpenProfile = (req, res) => {
+  try {
+    const { email, openProfile } = req.body;
+    const onlineUsers = getOnlineUsers();
+    const isUserOnline = onlineUsers.find((u) => u.email === email);
+    if (isUserOnline) {
+      isUserOnline.openProfile = openProfile;
+      res.status(200).send(`${email} is online`);
+    } else res.status(200).send(`${email} is offline`);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+};
+
 module.exports = {
   pingUser,
   addUser,
   getAllUsers,
   getUser,
+  setOpenProfile,
 };

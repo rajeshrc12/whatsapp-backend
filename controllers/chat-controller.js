@@ -1,7 +1,8 @@
 const { Chat } = require("../models/Chat");
-const { io } = require("../socket/socket");
+const { io, getOnlineUsers } = require("../socket/socket");
 const mongoose = require("mongoose");
 const { user: User } = require("../models/User");
+const moment = require("moment");
 const sendChats = async (req, res) => {
   try {
     let { chat, to, from } = req.body;
@@ -9,7 +10,6 @@ const sendChats = async (req, res) => {
       ...c,
       _id: new mongoose.Types.ObjectId(),
       createdAt: new Date(),
-      seen: false,
     }));
     let result = false;
     const existingChat = await Chat.findOne({
@@ -32,7 +32,15 @@ const sendChats = async (req, res) => {
       const savedChat = await newChat.save();
       result = savedChat;
     }
-    io.sockets.emit(to, chat);
+    const onlineUsers = getOnlineUsers();
+    const isUserOnline = onlineUsers.find((user) => user.email === to);
+    if (isUserOnline) {
+      if (isUserOnline.openProfile === from) {
+        io.sockets.emit(to, { type: "updateChats", chat });
+      } else {
+        io.sockets.emit(to, { type: "fetchContacts" });
+      }
+    }
     res.status(200).json(result);
   } catch (error) {
     console.log(error);
@@ -47,10 +55,32 @@ const getChats = async (req, res) => {
     const result = await Chat.findOne({
       users: { $all: [from, to] },
     });
-    if (result) {
-      chats = result.chats;
+    const newChat = [];
+
+    if (result?.chats?.length) {
+      let date = moment(result.chats[0].createdAt)
+        .format("DD/MM/YYYY")
+        .slice(0, 10);
+      newChat.push({
+        _id: new mongoose.Types.ObjectId(),
+        type: "date",
+        date,
+      });
+      for (const ch of result.chats) {
+        if (date === moment(ch.createdAt).format("DD/MM/YYYY").slice(0, 10)) {
+          newChat.push(ch);
+        } else {
+          date = moment(ch.createdAt).format("DD/MM/YYYY").slice(0, 10);
+          newChat.push({
+            _id: new mongoose.Types.ObjectId(),
+            type: "date",
+            date,
+          });
+          newChat.push(ch);
+        }
+      }
     }
-    res.status(200).json(chats);
+    res.status(200).json(newChat);
   } catch (error) {
     console.log(error);
     res.status(500).json(error);
@@ -136,8 +166,33 @@ const getContacts = async (req, res) => {
   }
 };
 
+const readChats = async (req, res) => {
+  try {
+    let { from, to } = req.body;
+    const result = await Chat.updateMany(
+      {
+        users: { $all: [from, to] },
+        "chats.to": from,
+        "chats.from": to,
+      },
+      { $set: { "chats.$[elem].seen": true } },
+      { arrayFilters: [{ "elem.to": from, "elem.from": to }] }
+    );
+    const onlineUsers = getOnlineUsers();
+    const isUserOnline = onlineUsers.find((user) => user.email === to);
+    if (isUserOnline) {
+      io.sockets.emit(to, { type: "fetchContactsAndChats" });
+    }
+    res.status(200).json(result);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+};
+
 module.exports = {
   sendChats,
   getChats,
   getContacts,
+  readChats,
 };
