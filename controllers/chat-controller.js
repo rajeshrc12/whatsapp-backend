@@ -189,10 +189,20 @@ const readChats = async (req, res) => {
     res.status(500).json(error);
   }
 };
+const uploadFiles = async (req, res) => {
+  try {
+    const files = req.files;
+    console.log(files);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+};
 
 module.exports = {
   sendChats,
   getChats,
   getContacts,
   readChats,
+  uploadFiles,
 };
