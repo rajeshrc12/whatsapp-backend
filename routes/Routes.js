@@ -11,6 +11,7 @@ const {
   getChats,
   getContacts,
   readChats,
+  downloadFile,
 } = require("../controllers/chat-controller");
 const routes = express.Router();
 
@@ -26,6 +27,7 @@ routes.post("/chat", sendChats);
 routes.patch("/chat", readChats);
 routes.get("/chat/:from/:to", getChats);
 routes.get("/contact/:email", getContacts);
+routes.get("/download/:id", downloadFile);
 
 module.exports = {
   routes,

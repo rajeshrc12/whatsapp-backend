@@ -10,6 +10,7 @@ const chatSchema = new mongoose.Schema({
   message: { type: String, required: true },
   createdAt: { type: Date, required: true },
   seen: { type: Boolean, required: true },
+  filename: { type: String },
 });
 
 const userChatSchema = new mongoose.Schema({

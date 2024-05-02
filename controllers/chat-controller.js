@@ -3,6 +3,11 @@ const { io, getOnlineUsers } = require("../socket/socket");
 const mongoose = require("mongoose");
 const { user: User } = require("../models/User");
 const moment = require("moment");
+const fs = require("fs");
+const { GridFSBucket } = require("mongodb");
+const File = require("../models/File");
+const bucket = new GridFSBucket(mongoose.connection);
+
 const sendChats = async (req, res) => {
   try {
     let { chat, to, from } = req.body;
@@ -51,12 +56,10 @@ const sendChats = async (req, res) => {
 const getChats = async (req, res) => {
   try {
     let { from, to } = req.params;
-    let chats = [];
     const result = await Chat.findOne({
       users: { $all: [from, to] },
     });
     const newChat = [];
-
     if (result?.chats?.length) {
       let date = moment(result.chats[0].createdAt)
         .format("DD/MM/YYYY")
@@ -192,7 +195,83 @@ const readChats = async (req, res) => {
 const uploadFiles = async (req, res) => {
   try {
     const files = req.files;
-    console.log(files);
+    const { from, to } = JSON.parse(req.body.userData) || {},
+      date = new Date();
+    let seen = false,
+      result = false;
+    const onlineUsers = getOnlineUsers();
+    if (
+      onlineUsers.find((user) => user.name === to && user.openProfile === from)
+    )
+      seen = true;
+    for (const file of files) {
+      const fileStream = fs.createReadStream(file.path);
+      const uploadStream = bucket.openUploadStream(file.filename);
+      fileStream.pipe(uploadStream);
+      if (uploadStream.filename) {
+        let fileType = file?.mimetype?.split("/")[0] || "other";
+        if (
+          (fileType === "video" && !file?.mimetype?.includes("mp4")) ||
+          fileType === "text"
+        ) {
+          fileType = "other";
+        }
+        console.log(fileType, file);
+        const chat = {
+          from,
+          to,
+          seen,
+          createdAt: date,
+          message: String(uploadStream.id),
+          type: fileType,
+          filename: file.originalname,
+          _id: new mongoose.Types.ObjectId(),
+        };
+        result = await Chat.find({
+          users: {
+            $all: [from, to],
+          },
+        });
+        if (result.length) {
+          result = await Chat.updateOne(
+            { _id: result[0]._id },
+            { $push: { chats: { $each: [chat] } } }
+          );
+        } else {
+          const newChat = new Chat({
+            users: [from, to],
+            chats: chat,
+          });
+          result = await newChat.save();
+        }
+      }
+    }
+    const isUserOnline = onlineUsers.find((user) => user.email === to);
+    if (isUserOnline) {
+      if (isUserOnline.openProfile === from) {
+        io.sockets.emit(to, { type: "fetchContactsAndChats" });
+      } else {
+        io.sockets.emit(to, { type: "fetchContacts" });
+      }
+    }
+    if (result) res.status(200).json(result);
+    else res.status(400).json(result);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+};
+
+const downloadFile = async (req, res) => {
+  try {
+    const fileId = req.params.id;
+    const file = await File.findOne({
+      _id: new mongoose.Types.ObjectId(fileId),
+    });
+    if (file?.filename) {
+      const downloadStream = bucket.openDownloadStreamByName(file.filename);
+      downloadStream.pipe(res);
+    } else res.status(400).json(false);
   } catch (error) {
     console.log(error);
     res.status(500).json(error);
@@ -205,4 +284,5 @@ module.exports = {
   getContacts,
   readChats,
   uploadFiles,
+  downloadFile,
 };
