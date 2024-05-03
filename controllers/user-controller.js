@@ -1,4 +1,4 @@
-const { io, getOnlineUsers } = require("../socket/socket");
+const { io, getOnlineUsers, removeOnlineUser } = require("../socket/socket");
 const { user: User } = require("../models/User");
 
 const addUser = async (req, res) => {
@@ -49,11 +49,10 @@ const getUser = async (req, res) => {
     res.status(500).json(error);
   }
 };
-const pingUser = (req, res) => {
+const logoutUser = (req, res) => {
   try {
-    const { name, message } = req.body;
-    io.sockets.emit(name, message);
-    res.status(200).send({ name, message });
+    removeOnlineUser(req.params.email);
+    res.status(200).send("User logged out");
   } catch (error) {
     console.log(error);
     res.status(500).json(error);
@@ -76,7 +75,7 @@ const setOpenProfile = (req, res) => {
 };
 
 module.exports = {
-  pingUser,
+  logoutUser,
   addUser,
   getAllUsers,
   getUser,

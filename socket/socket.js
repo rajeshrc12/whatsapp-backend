@@ -46,10 +46,14 @@ io.on("connection", (socket) => {
 });
 
 const getOnlineUsers = () => onlineUsers;
+const removeOnlineUser = (email) => {
+  onlineUsers = onlineUsers.filter((u) => u.email !== email);
+};
 
 module.exports = {
   app,
   io,
   server,
   getOnlineUsers,
+  removeOnlineUser,
 };

@@ -5,6 +5,7 @@ const {
   getAllUsers,
   getUser,
   setOpenProfile,
+  logoutUser,
 } = require("../controllers/user-controller");
 const {
   sendChats,
@@ -19,7 +20,7 @@ const routes = express.Router();
 routes.post("/user", addUser);
 routes.get("/users", getAllUsers);
 routes.get("/user/:email", getUser);
-routes.post("/pinguser", pingUser);
+routes.get("/logoutuser/:email", logoutUser);
 routes.post("/openprofile", setOpenProfile);
 
 // Chat routes
