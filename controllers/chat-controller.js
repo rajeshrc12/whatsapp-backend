@@ -41,9 +41,12 @@ const sendChats = async (req, res) => {
     const isUserOnline = onlineUsers.find((user) => user.email === to);
     if (isUserOnline) {
       if (isUserOnline.openProfile === from) {
-        io.sockets.emit(to, { type: "updateChats", chat });
+        io.sockets.emit(to, {
+          type: ["updateChats", "fetchContacts"],
+          payload: chat,
+        });
       } else {
-        io.sockets.emit(to, { type: "fetchContacts" });
+        io.sockets.emit(to, { type: ["fetchContacts"] });
       }
     }
     res.status(200).json(result);
@@ -183,7 +186,13 @@ const readChats = async (req, res) => {
     const onlineUsers = getOnlineUsers();
     const isUserOnline = onlineUsers.find((user) => user.email === to);
     if (isUserOnline) {
-      io.sockets.emit(to, { type: "fetchContactsAndChats" });
+      if (isUserOnline.openProfile === from) {
+        io.sockets.emit(to, {
+          type: ["fetchChats", "fetchContacts"],
+        });
+      } else {
+        io.sockets.emit(to, { type: ["fetchContacts"] });
+      }
     }
     res.status(200).json(result);
   } catch (error) {
@@ -247,9 +256,9 @@ const uploadFiles = async (req, res) => {
     const isUserOnline = onlineUsers.find((user) => user.email === to);
     if (isUserOnline) {
       if (isUserOnline.openProfile === from) {
-        io.sockets.emit(to, { type: "fetchContactsAndChats" });
+        io.sockets.emit(to, { type: ["fetchContacts", "fetchChats"] });
       } else {
-        io.sockets.emit(to, { type: "fetchContacts" });
+        io.sockets.emit(to, { type: ["fetchContacts"] });
       }
     }
     if (result) res.status(200).json(result);
