@@ -94,7 +94,6 @@ const getContacts = async (req, res) => {
   try {
     const { email } = req.params;
     let data = [];
-    console.log(email);
     if (email) {
       const result = await Chat.aggregate([
         // Match documents where the given string is present in the users array
@@ -201,7 +200,7 @@ const uploadFiles = async (req, res) => {
       result = false;
     const onlineUsers = getOnlineUsers();
     if (
-      onlineUsers.find((user) => user.name === to && user.openProfile === from)
+      onlineUsers.find((user) => user.email === to && user.openProfile === from)
     )
       seen = true;
     for (const file of files) {
@@ -216,7 +215,6 @@ const uploadFiles = async (req, res) => {
         ) {
           fileType = "other";
         }
-        console.log(fileType, file);
         const chat = {
           from,
           to,
