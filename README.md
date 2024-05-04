@@ -1,8 +1,7 @@
 # WhatsApp Backend
-Project is divied into two parts
-1.Frontend - https://github.com/rajeshrc12/whatsapp-frontend
-2.Backend - current repo
-Make sure you install both 
+## Project is divied into two parts
+   1. **Frontend** - https://github.com/rajeshrc12/whatsapp-frontend
+   2. **Backend** - current repo
 
 If you encounter any issues during installation, feel free to reach out to me on LinkedIn: https://www.linkedin.com/in/rajeshcharhajari/
 ## Project Installation
