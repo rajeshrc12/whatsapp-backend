@@ -3,6 +3,7 @@ const { routes } = require("./routes/Routes");
 const { Connection } = require("./database/db");
 const multer = require("multer");
 const { uploadFiles } = require("./controllers/chat-controller");
+const { updateUserPhoto } = require("./controllers/user-controller");
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "uploads/");
@@ -26,3 +27,4 @@ server.listen(port, () => {
 
 app.use("/", routes);
 app.post("/files", upload.array("files"), uploadFiles);
+app.post("/userphoto", upload.single("photo"), updateUserPhoto);

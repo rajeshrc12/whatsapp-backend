@@ -6,6 +6,8 @@ const {
   getUser,
   setOpenProfile,
   logoutUser,
+  updateUser,
+  deleteUserPhoto,
 } = require("../controllers/user-controller");
 const {
   sendChats,
@@ -22,6 +24,8 @@ routes.get("/users", getAllUsers);
 routes.get("/user/:email", getUser);
 routes.get("/logoutuser/:email", logoutUser);
 routes.post("/openprofile", setOpenProfile);
+routes.patch("/user", updateUser);
+routes.delete("/userphoto/:email", deleteUserPhoto);
 
 // Chat routes
 routes.post("/chat", sendChats);
