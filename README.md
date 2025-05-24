@@ -1,9 +1,39 @@
 # WhatsApp Backend
+
+---
+
+## 🛠️ Technologies Used
+
+**Core Stack**
+
+- Node.js
+- Express.js
+- MongoDB
+- Mongoose
+
+**APIs & Middleware**
+
+- dotenv
+- body-parser
+- cors
+
+**File Handling**
+
+- Multer
+
+**Realtime & Dev Tools**
+
+- Socket.io
+- Nodemon
+- Moment.js
+
 ## Project is divided into two parts
-   1. **Frontend** - https://github.com/rajeshrc12/whatsapp-frontend
-   2. **Backend** - current repo
+
+1.  **Frontend** - https://github.com/rajeshrc12/whatsapp-frontend
+2.  **Backend** - current repo
 
 If you encounter any issues during installation, feel free to reach out to me on LinkedIn: https://www.linkedin.com/in/rajeshcharhajari/
+
 ## Project Installation
 
 1. **Clone the Project:**
