@@ -1,7 +1,5 @@
 # WhatsApp Backend
 
----
-
 ## 🛠️ Technologies Used
 
 **Core Stack**
